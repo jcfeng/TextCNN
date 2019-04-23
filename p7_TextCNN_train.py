@@ -207,15 +207,15 @@ def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textC
         except Exception:
             embedding = None
         if embedding is not None:  # the 'word' exist a embedding
-            word_embedding_2dlist[i] = embedding;
+            word_embedding_2dlist[i] = embedding
             count_exist = count_exist + 1  # assign array to this word.
         else:  # no embedding for this word
-            word_embedding_2dlist[i] = np.random.uniform(-bound, bound, FLAGS.embed_size);
+            word_embedding_2dlist[i] = np.random.uniform(-bound, bound, FLAGS.embed_size)
             count_not_exist = count_not_exist + 1  # init a random value for the word.
     word_embedding_final = np.array(word_embedding_2dlist)  # covert to 2d array.
     word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor
     t_assign_embedding = tf.assign(textCNN.Embedding,word_embedding)  # assign this value to our embedding variables of our model.
-    sess.run(t_assign_embedding);
+    sess.run(t_assign_embedding)
     print("word. exists embedding:", count_exist, " ;word not exist embedding:", count_not_exist)
     print("using pre-trained word emebedding.ended...")
 

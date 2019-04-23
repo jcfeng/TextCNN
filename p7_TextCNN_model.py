@@ -27,7 +27,9 @@ class TextCNN:
         # add placeholder (X,label)
         self.input_x = tf.placeholder(tf.int32, [None, self.sequence_length], name="input_x")  # X
         #self.input_y = tf.placeholder(tf.int32, [None,],name="input_y")  # y:[None,num_classes]
+        #tf.placeholder(dtype, shape=None, name=None)其中shape=[None,3]时表示列是3，行不一定
         self.input_y_multilabel = tf.placeholder(tf.float32,[None,self.num_classes], name="input_y_multilabel")  # y:[None,num_classes]. this is for multi-label classification only.
+
         self.dropout_keep_prob=tf.placeholder(tf.float32,name="dropout_keep_prob")
         self.iter = tf.placeholder(tf.int32) #training iteration
         self.tst=tf.placeholder(tf.bool)
@@ -94,6 +96,7 @@ class TextCNN:
                 # 1)each filter with conv2d's output a shape:[1,sequence_length-filter_size+1,1,1];2)*num_filters--->[1,sequence_length-filter_size+1,1,num_filters];3)*batch_size--->[batch_size,sequence_length-filter_size+1,1,num_filters]
                 # input data format:NHWC:[batch, height, width, channels];output:4-D
                 conv = tf.nn.conv2d(self.sentence_embeddings_expanded, filter, strides=[1, 1, 1, 1], padding="VALID",name="conv")  # shape:[batch_size,sequence_length - filter_size + 1,1,num_filters]
+                #此处的用法似乎不能work,根据https://towardsdatascience.com/batch-normalization-theory-and-how-to-use-it-with-tensorflow-1892ca0173ad
                 conv = tf.contrib.layers.batch_norm(conv, is_training=self.is_training_flag, scope='cnn_bn_')
 
                 # ====>c. apply nolinearity
