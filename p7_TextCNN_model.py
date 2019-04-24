@@ -46,9 +46,11 @@ class TextCNN:
         self.logits = self.inference() #[None, self.label_size]. main computation graph is here.
         self.possibility=tf.nn.sigmoid(self.logits)
         if multi_label_flag:
-            print("going to use multi label loss.");
+            print("going to use multi label loss.")
             self.loss_val = self.loss_multilabel()
-        else:print("going to use single label loss.");self.loss_val = self.loss()
+        else:
+            print("going to use single label loss.")
+            self.loss_val = self.loss()
         self.train_op = self.train()
         if not self.multi_label_flag:
             self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
@@ -165,7 +167,7 @@ class TextCNN:
             #output: A 1-D `Tensor` of length `batch_size` of the same type as `logits` with the softmax cross entropy loss.
             #input_y:shape=(?, 1999); logits:shape=(?, 1999)
             # let `x = logits`, `z = labels`.  The logistic loss is:z * -log(sigmoid(x)) + (1 - z) * -log(1 - sigmoid(x))
-            losses = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.input_y_multilabel, logits=self.logits);#losses=tf.nn.softmax_cross_entropy_with_logits(labels=self.input__y,logits=self.logits)
+            losses = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.input_y_multilabel, logits=self.logits)#losses=tf.nn.softmax_cross_entropy_with_logits(labels=self.input__y,logits=self.logits)
             #losses=-self.input_y_multilabel*tf.log(self.logits)-(1-self.input_y_multilabel)*tf.log(1-self.logits)
             print("sigmoid_cross_entropy_with_logits.losses:",losses) #shape=(?, 1999).
             losses=tf.reduce_sum(losses,axis=1) #shape=(?,). loss for all data in the batch
@@ -178,7 +180,7 @@ class TextCNN:
         with tf.name_scope("loss"):
             #input: `logits`:[batch_size, num_classes], and `labels`:[batch_size]
             #output: A 1-D `Tensor` of length `batch_size` of the same type as `logits` with the softmax cross entropy loss.
-            losses = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.input_y, logits=self.logits);#sigmoid_cross_entropy_with_logits.#losses=tf.nn.softmax_cross_entropy_with_logits(labels=self.input_y,logits=self.logits)
+            losses = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.input_y, logits=self.logits)#sigmoid_cross_entropy_with_logits.#losses=tf.nn.softmax_cross_entropy_with_logits(labels=self.input_y,logits=self.logits)
             #print("1.sparse_softmax_cross_entropy_with_logits.losses:",losses) # shape=(?,)
             loss=tf.reduce_mean(losses)#print("2.loss.loss:", loss) #shape=()
             l2_losses = tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name]) * l2_lambda
@@ -193,12 +195,17 @@ class TextCNN:
 
     def train(self):
         """based on the loss, use SGD to update parameter"""
+        # 指数衰减学习率，1.首先使用较大学习率(目的：为快速得到一个比较优的解);2.然后通过迭代逐步减小学习率(目的：为使模型在训练后期更加稳定);
         learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step, self.decay_steps, self.decay_rate, staircase=True)
         self.learning_rate_=learning_rate
         optimizer = tf.train.AdamOptimizer(learning_rate)
+        # zip() * 操作符一起是zip()运算的逆运算
         gradients, variables = zip(*optimizer.compute_gradients(self.loss_val))
+        # GradientClipping的引入是为了处理gradientexplosion的问题
         gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+        # 不加下边两行代码是无法更新的
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) #ADD 2018.06.01
+        # 使用来控制就算图节点之间的依赖的
         with tf.control_dependencies(update_ops):  #ADD 2018.06.01
             train_op = optimizer.apply_gradients(zip(gradients, variables))
         return train_op

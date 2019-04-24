@@ -197,7 +197,7 @@ def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textC
     word_embedding_2dlist = [[]] * vocab_size  # create an empty word_embedding list.
     word_embedding_2dlist[0] = np.zeros(FLAGS.embed_size)  # assign empty for first word:'PAD'
     bound = np.sqrt(6.0) / np.sqrt(vocab_size)  # bound for random variables.
-    count_exist = 0;
+    count_exist = 0
     count_not_exist = 0
     for i in range(2, vocab_size):  # loop each word. notice that the first two words are pad and unknown token
         word = vocabulary_index2word[i]  # get a word
