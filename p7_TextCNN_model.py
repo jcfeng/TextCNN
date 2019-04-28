@@ -25,8 +25,8 @@ class TextCNN:
         self.is_training_flag = tf.placeholder(tf.bool, name="is_training_flag")
 
         # add placeholder (X,label)
-        self.input_x = tf.placeholder(tf.int32, [None, self.sequence_length], name="input_x")  # X
-        #self.input_y = tf.placeholder(tf.int32, [None,],name="input_y")  # y:[None,num_classes]
+        self.input_x = tf.placeholder(tf.int32, [None, self.sequence_length], name="input_x")  # X 每个句子用其各个词或字符在单词表中的id表示
+        self.input_y = tf.placeholder(tf.int32, [None,],name="input_y")  # y:[None,num_classes]
         #tf.placeholder(dtype, shape=None, name=None)其中shape=[None,3]时表示列是3，行不一定
         self.input_y_multilabel = tf.placeholder(tf.float32,[None,self.num_classes], name="input_y_multilabel")  # y:[None,num_classes]. this is for multi-label classification only.
 
@@ -55,8 +55,8 @@ class TextCNN:
         if not self.multi_label_flag:
             self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
             print("self.predictions:", self.predictions)
-            correct_prediction = tf.equal(tf.cast(self.predictions,tf.int32), self.input_y) #tf.argmax(self.logits, 1)-->[batch_size]
-            self.accuracy =tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy") # shape=()
+            self.correct_prediction = tf.equal(tf.cast(self.predictions,tf.int32), self.input_y) #tf.argmax(self.logits, 1)-->[batch_size]
+            self.accuracy =tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32), name="Accuracy") # shape=()
 
     def instantiate_weights(self):
         """define all weights here"""
